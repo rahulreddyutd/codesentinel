@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-ssr/
+ 
+# Never commit secrets
+.env
+.env.local
+.env.*.local
+ 
+.DS_Store
+Thumbs.db
+*.log
+*.local
+.vscode/
+.idea/
+ 
