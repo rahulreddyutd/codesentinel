@@ -1,6 +1,5 @@
 const SYSTEM_PROMPT = `You are a senior security engineer and software architect performing a thorough code review.
 Analyze the code provided and return ONLY a valid JSON object — no markdown fences, no preamble, no explanation outside the JSON.
-
 Return this exact shape:
 {
   "summary": "2–3 sentence executive summary covering the most critical findings",
@@ -38,30 +37,17 @@ Return this exact shape:
     }
   ]
 }
-
 Scoring guide (0–100):
 - Security: 100 = no known issues; deduct heavily for critical/high findings
 - Architecture: 100 = clean separation, patterns applied well, scalable
 - Quality: 100 = readable, tested, idiomatic
-
 Be specific. Reference exact variable names, line patterns, and APIs from the submitted code.`;
 
 export async function analyzeCode(code, language) {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-
-  if (!apiKey || apiKey === "sk-ant-...") {
-    throw new Error(
-      "No API key found. Copy .env.example to .env and add your VITE_ANTHROPIC_API_KEY."
-    );
-  }
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("/api/analyze", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
@@ -78,13 +64,12 @@ export async function analyzeCode(code, language) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `Anthropic API error ${response.status}`);
+    throw new Error(err?.error?.message || `API error ${response.status}`);
   }
 
   const data = await response.json();
   const raw = data.content.map((b) => b.text || "").join("").trim();
   const clean = raw.replace(/^```json\s*/i, "").replace(/\s*```$/, "").trim();
-
   try {
     return JSON.parse(clean);
   } catch {
